@@ -1,29 +1,32 @@
-
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+from yahooquery import search
 
 # -----------------------------
-# NAME → TICKER MAP
+# TICKER RESOLVER (NAME OR SYMBOL)
 # -----------------------------
-name_map = {
-    "tesla": "TSLA",
-    "apple": "AAPL",
-    "microsoft": "MSFT",
-    "google": "GOOGL",
-    "amazon": "AMZN",
-    "meta": "META",
-    "nvidia": "NVDA",
-    "amd": "AMD",
-    "ford": "F",
-    "gm": "GM",
-    "toyota": "TM",
-    "voo": "VOO",
-    "spy": "SPY",
-    "qqq": "QQQ",
-    "vti": "VTI"
-}
+def get_ticker(query):
+    try:
+        # If user already entered ticker
+        if query.isupper() and len(query) <= 5:
+            return query
 
+        result = search(query)
+        quotes = result.get("quotes", [])
+
+        if not quotes:
+            return None
+
+        return quotes[0].get("symbol")
+
+    except:
+        return None
+
+
+# -----------------------------
+# DATA FETCH
+# -----------------------------
 cache = {}
 
 def get_data(ticker):
@@ -56,6 +59,10 @@ def get_data(ticker):
     except:
         return None
 
+
+# -----------------------------
+# SCORING
+# -----------------------------
 def stock_score(d):
     roe = d.get("roe") or 0
     debt = d.get("debt") or 0
@@ -67,26 +74,40 @@ def stock_score(d):
         min(growth * 50, 10) * 0.3
     )
 
+
 def etf_score(d):
     r = d.get("return_1y") or 0
     return r * 10
 
-def grade(s):
-    if s >= 8: return "A+"
-    if s >= 7: return "A"
-    if s >= 6: return "B"
-    if s >= 5: return "C"
+
+def grade(score):
+    if score >= 8:
+        return "A+"
+    elif score >= 7:
+        return "A"
+    elif score >= 6:
+        return "B"
+    elif score >= 5:
+        return "C"
     return "D"
 
+
+# -----------------------------
+# ANALYSIS ENGINE
+# -----------------------------
 def analyze(inputs):
+
     rows = []
 
-    for name in inputs:
-        ticker = name_map.get(name.lower())
+    for item in inputs:
+
+        ticker = get_ticker(item)
+
         if not ticker:
             continue
 
         d = get_data(ticker)
+
         if not d:
             continue
 
@@ -102,27 +123,34 @@ def analyze(inputs):
             "Type": typ,
             "Score": round(score, 2),
             "Grade": grade(score),
-            "Sector": d.get("sector", "ETF")
+            "Sector": d.get("sector") or "ETF/Broad Market"
         })
 
     if not rows:
-        st.error("No valid data found")
+        st.error("No valid assets found")
         return
 
     df = pd.DataFrame(rows).sort_values("Score", ascending=False)
 
-    st.subheader("📊 Results")
-    st.dataframe(df)
+    st.subheader("📊 Full Results")
+    st.dataframe(df, use_container_width=True)
 
-    st.subheader("🏆 Top Picks")
-    st.dataframe(df[df["Score"] >= 7])
+    st.subheader("🏆 Top Picks (≥ 7)")
+    st.dataframe(df[df["Score"] >= 7], use_container_width=True)
 
-    st.subheader("🟡 Watchlist")
-    st.dataframe(df[(df["Score"] >= 5) & (df["Score"] < 7)])
+    st.subheader("🟡 Watchlist (5–7)")
+    st.dataframe(df[(df["Score"] >= 5) & (df["Score"] < 7)], use_container_width=True)
 
-st.title("📈 Stock + ETF Screener")
+    st.subheader("🔴 Weak (<5)")
+    st.dataframe(df[df["Score"] < 5], use_container_width=True)
 
-user_input = st.text_input("Enter assets (Tesla, Apple, VOO, QQQ)")
+
+# -----------------------------
+# UI
+# -----------------------------
+st.title("📈 AI Stock + ETF Screener (Pro Mode)")
+
+user_input = st.text_input("Enter companies or tickers (e.g. Apple, Tesla, VOO, NVDA)")
 
 if user_input:
     items = [x.strip() for x in user_input.split(",")]
