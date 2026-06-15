@@ -13,7 +13,7 @@ def get_ticker(query):
 
     except:
         return None
-```
+`
 
 # -----------------------------
 
