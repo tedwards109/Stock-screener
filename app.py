@@ -24,7 +24,7 @@ def get_ticker(query):
 cache = {}
 
 def get_data(ticker):
-if ticker in cache:
+    if ticker in cache:
 return cache[ticker]
 
 
