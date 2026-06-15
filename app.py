@@ -27,7 +27,7 @@ def get_data(ticker):
 if ticker in cache:
 return cache[ticker]
 
-```
+
 try:
     s = yf.Ticker(ticker)
     info = s.info
@@ -53,7 +53,7 @@ try:
 
 except:
     return None
-```
+
 
 # -----------------------------
 
@@ -63,7 +63,7 @@ except:
 
 def stock_score(d):
 
-```
+
 metrics = []
 
 # QUALITY
@@ -125,7 +125,7 @@ return {
     "confidence": confidence,
     "investment_attractiveness": round(final * 10)
 }
-```
+
 
 # -----------------------------
 
@@ -136,7 +136,7 @@ return {
 def etf_score(d):
 r = d.get("return_1y") or 0
 
-```
+
 return {
     "final": round(r * 10, 2),
     "quality": None,
@@ -147,7 +147,7 @@ return {
     "confidence": 100,
     "investment_attractiveness": round(r * 100)
 }
-```
+
 
 # -----------------------------
 
@@ -175,7 +175,7 @@ return "D"
 
 def analyze(inputs):
 
-```
+
 rows = []
 
 for item in inputs:
@@ -251,7 +251,7 @@ st.dataframe(
     df[df["Overall"] < 5],
     use_container_width=True
 )
-```
+
 
 # -----------------------------
 
