@@ -1,30 +1,18 @@
-import streamlit as st
-import yfinance as yf
-import pandas as pd
-from yahooquery import search
-
-# -----------------------------
-
-# TICKER RESOLVER (NAME → TICKER)
-
-# -----------------------------
-
 def get_ticker(query):
     try:
-if query.isupper() and len(query) <= 5:
-return query
+        if query.isupper() and len(query) <= 5:
+            return query
 
-```
-    result = search(query)
-    quotes = result.get("quotes", [])
+        result = search(query)
+        quotes = result.get("quotes", [])
 
-    if not quotes:
+        if not quotes:
+            return None
+
+        return quotes[0].get("symbol")
+
+    except:
         return None
-
-    return quotes[0].get("symbol")
-
-except:
-    return None
 ```
 
 # -----------------------------
