@@ -10,7 +10,7 @@ from yahooquery import search
 # -----------------------------
 
 def get_ticker(query):
-try:
+    try:
 if query.isupper() and len(query) <= 5:
 return query
 
